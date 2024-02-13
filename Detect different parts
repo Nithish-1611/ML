@@ -1,0 +1,48 @@
+import cv2
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras.models import load_model
+
+def fabric_defect_detection(image_path, model_path):
+    # Load the pre-trained U-Net model for fabric defect detection
+    model = load_model(model_path)
+
+    # Read the fabric image
+    image = cv2.imread(image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # Resize the image to match the input size of the model
+    input_size = (256, 256)
+    image = cv2.resize(image, input_size)
+
+    # Normalize the image
+    image = image / 255.0
+
+    # Expand dimensions to create a batch of size 1
+    image = np.expand_dims(image, axis=0)
+
+    # Predict the segmentation mask
+    mask = model.predict(image)
+
+    # Threshold the mask to obtain binary segmentation
+    threshold = 0.5
+    binary_mask = (mask > threshold).astype(np.uint8)
+
+    # Resize the binary mask to the original image size
+    binary_mask = cv2.resize(binary_mask[0], (image.shape[2], image.shape[1]))
+
+    # Apply the binary mask to the original image
+    defective_region = cv2.bitwise_and(cv2.cvtColor(image[0], cv2.COLOR_RGB2BGR), 
+                                       cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR))
+
+    # Display the original image, segmentation mask, and defective region
+    cv2.imshow("Original Image", cv2.cvtColor(image[0], cv2.COLOR_RGB2BGR))
+    cv2.imshow("Defective Region", defective_region)
+    cv2.imshow("Segmentation Mask", cv2.cvtColor(binary_mask * 255, cv2.COLOR_GRAY2BGR))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+# Example usage
+fabric_image_path = "path/to/your/fabric_image.jpg"
+model_path = "path/to/your/pretrained_model.h5"
+fabric_defect_detection(fabric_image_path, model_path)
