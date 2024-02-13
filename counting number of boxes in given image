@@ -3,7 +3,7 @@ import numpy as np
 
 def count_boxes(image_path):
     # Load YOLO model and configuration
-    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+    net = cv2.dnn.readNet("yolov3.weights", "3.jpeg")
     layer_names = net.getUnconnectedOutLayersNames()
 
     # Read image
